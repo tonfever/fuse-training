@@ -10,11 +10,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Properties;
 
-public class RouteTest extends CamelBlueprintTestSupport {
+public class Route2Test extends CamelBlueprintTestSupport {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RouteTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Route2Test.class);
 
-    private static final String BLUEPRINT_DESCRIPTOR = "OSGI-INF/blueprint/blueprint.xml";
+    private static final String BLUEPRINT_DESCRIPTOR = "OSGI-INF/blueprint/camel-process.xml,OSGI-INF/blueprint/blueprint.xml";
 
     @Override
     protected String getBlueprintDescriptor() {
@@ -40,7 +40,7 @@ public class RouteTest extends CamelBlueprintTestSupport {
 
     @Test
     public void testReadFile_whenTypeIsMatch_thenStartScript() throws Exception {
-        final RouteDefinition triggerRoute = context.getRouteDefinition("route-test");
+        final RouteDefinition triggerRoute = context.getRouteDefinition("test-route-1");
 
         triggerRoute.adviceWith(context, new AdviceWithRouteBuilder() {
             @Override

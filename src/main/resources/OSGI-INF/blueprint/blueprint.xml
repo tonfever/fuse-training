@@ -13,10 +13,20 @@
         </cm:default-properties>
     </cm:property-placeholder>
 
+    <bean class="com.demo.processor.Lab01Bean" id="lab01Bean"/>
+    <bean class="com.demo.processor.Lab01Processor" id="lab01Process"/>
+
     <camelContext id="route-test-context" xmlns="http://camel.apache.org/schema/blueprint">
+        <propertyPlaceholder id="properties" location="blueprint:route.placeholder"/>
         <route id="route-test">
             <from uri="{{TEST.FILE.ENDPOINT}}?delete=true"/>
             <log message="${in.header.CamelFileName} with content -&gt; ${body}"/>
+            <bean ref="lab01Bean" method="printExchangeMsg"/>
+            <process ref="lab01Process"/>
+            <setHeader headerName="CamelFileName">
+                <simple>${date:now:yyyyMMddhhmmss}-read.xml</simple>
+                </setHeader>
+            <to uri="ftp://localhost:21/data/app/upload?username=jboss&amp;password=jboss#1!"/>
         </route>
     </camelContext>
 
