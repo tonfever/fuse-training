@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+           xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.0.0"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="
+       http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
+	   http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.0.0 http://aries.apache.org/schemas/blueprint-cm/blueprint-cm-1.0.0.xsd
+       http://camel.apache.org/schema/blueprint http://camel.apache.org/schema/blueprint/camel-blueprint.xsd">
+
+    <cm:property-placeholder id="lab02.placeholder" persistent-id="lab02">
+        <cm:default-properties>
+            <cm:property name="TEST.FILE.ENDPOINT" value="file://data/app/input"/>
+        </cm:default-properties>
+    </cm:property-placeholder>
+
+    <bean class="com.test.mycompany.StockEnricher" id="stockEnricher"/>
+
+    <camelContext id="lab02-1-context" xmlns="http://camel.apache.org/schema/blueprint">
+        <propertyPlaceholder id="properties" location="blueprint:lab02.placeholder"/>
+
+        <dataFormats>
+            <json id="stockTradingMarshal" library="Jackson" unmarshalTypeName="com.test.mycompany.Stocktrading"/>
+            <xstream id="stockTradingMarshalXml" encoding="UTF-8" permissions="org.apache.camel.dataformat.stream.*,com.test.mycompany.Stocktrading">
+                <aliases>
+                    <alias name="Stocktrading" class="com.test.mycompany.Stocktrading"></alias>
+                </aliases>
+            </xstream>
+        </dataFormats>
+
+        <route id="lab02-1-route">
+            <from uri="{{TEST.FILE.ENDPOINT}}?delete=true"/>
+            <log message="${in.header.CamelFileName} with content -&gt; ${body}"/>
+            <convertBodyTo type="java.lang.String"/>
+            <to uri="log:lab02-route-before-marshal?showAll=true&amp;multiline=true"/>
+            <!--<unmarshal ref="stockTradingMarshal"/>-->
+            <unmarshal ref="stockTradingMarshalXml"/>
+
+            <to uri="log:lab02-route-after-marshal?showAll=true&amp;multiline=true"/>
+            <bean ref="stockEnricher" method="setUpStock"/>
+            <!--<marshal ref="stockTradingMarshal"/>-->
+            <marshal ref="stockTradingMarshalXml"/>
+            <to uri="log:lab02-route-after-fixture?showAll=true&amp;multiline=true"/>
+        </route>
+    </camelContext>
+
+</blueprint>

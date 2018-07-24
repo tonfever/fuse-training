@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Stocktrading>
+    <stockId value="ABC"/>
+    <name value="John Doe"/>
+    <custId value="123"/>
+    <vip value="1"/>
+</Stocktrading>
