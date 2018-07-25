@@ -27,6 +27,10 @@
     <camelContext id="lab03-1-context" xmlns="http://camel.apache.org/schema/blueprint">
         <propertyPlaceholder id="properties" location="blueprint:lab03.placeholder"/>
 
+        <dataFormats>
+            <json id="stockTradingMarshal" library="Jackson" unmarshalTypeName="com.test.lab03.model.Stocktrading"/>
+        </dataFormats>
+
         <route id="lab03-1-route">
             <from uri="cxfrs:bean:apiRouterService?bindingStyle=SimpleConsumer"/>
             <log id="lab03-1-route" message="[BEFORE REMOVE HEADER] BODY:${body}, HEADER:${headers}"/>
@@ -35,6 +39,7 @@
             <setHeader headerName="vip">
                 <jsonpath>$.vip</jsonpath>
             </setHeader>
+            <unmarshal ref="stockTradingMarshal"/>
             <choice>
                 <when>
                     <simple>${header.vip} == '1'</simple>

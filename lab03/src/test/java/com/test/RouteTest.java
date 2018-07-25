@@ -1,8 +1,12 @@
 package com.test;
 
+import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
+import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.test.blueprint.CamelBlueprintTestSupport;
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,24 +42,52 @@ public class RouteTest extends CamelBlueprintTestSupport {
         return properties;
     }
 
+    @Override
+    protected RouteBuilder createRouteBuilder() throws Exception {
+
+        return new RouteBuilder() {
+            @Override
+            public void configure() throws Exception {
+                String cxfEndpoint =  getContext().resolvePropertyPlaceholders("{{fuse.host.url}}") + "/api/v1/test";
+
+                from("direct:start")
+                    .setHeader(Exchange.HTTP_METHOD, constant("POST"))
+                    .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
+                    .setHeader(Exchange.ACCEPT_CONTENT_TYPE, constant("application/json"))
+                    .to(cxfEndpoint)
+                    .to("log:lab03-1-route?showAll=true&multiline=true");
+
+            }
+        };
+    }
+
     @Test
-    public void testReadFile_whenFileExist_thenPrintContent() throws Exception {
+    public void testCxfCall_whenValidRequest_thenReturnSuccess() throws Exception {
+
         final RouteDefinition route = context.getRouteDefinition("lab03-1-route");
 
         route.adviceWith(context, new AdviceWithRouteBuilder() {
             @Override
             public void configure() {
-                replaceFromWith("direct:restServiceEndpoint");
-                //interceptSendToEndpoint("ftp://*").skipSendToOriginalEndpoint().to("log:uploadfile?showAll=true&multiline=true");
-                weaveAddLast().to("mock:output");
+                weaveAddLast().process(new Processor() {
+                    public void process(Exchange exchange) {
+                        com.test.lab03.common.ResponseWrapper res = (com.test.lab03.common.ResponseWrapper) exchange.getIn().getBody();
+                        LOGGER.info("response status - " + res.getErrorCode());
+                    }
+                }).to("mock:output");
             }
         });
 
-        context.start();
 
-        template.requestBody("direct:restServiceEndpoint", "{}");
+        String requestBody = getTestFile("testdata/File1.json");
+        template.requestBody("direct:start", requestBody);
 
         getMockEndpoint("mock:output").expectedMessageCount(1);
+
         assertMockEndpointsSatisfied();
+    }
+
+    public String getTestFile(String path) throws IOException {
+        return IOUtils.toString(getClass().getClassLoader().getResourceAsStream(path));
     }
 }
