@@ -1,0 +1,4 @@
+application.email.templates.directory: "${project.build.directory}/classes/templates/"
+application.email.From: "CCB Onboarding Case Manager <no-reply@citi.com>"
+application.email.smtp.host: "localhost"
+application.email.smtp.port: "25"

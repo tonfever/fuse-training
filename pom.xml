@@ -9,6 +9,8 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>parent</module>
+        <module>springboot-cxf</module>
+        <module>springboot-camel-parent</module>
     </modules>
 
     <packaging>pom</packaging>
